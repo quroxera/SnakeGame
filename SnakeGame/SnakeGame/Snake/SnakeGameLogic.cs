@@ -46,17 +46,20 @@ namespace SnakeGame.Snake
 
         private void GotoGameplay()
         {
-            gameplayState.Reset();
             gameplayState.fieldWidth = screenWigth;
             gameplayState.fieldHeight = screenHeight;
             ChangeState(gameplayState);
+            gameplayState.Reset();
         }
 
         public override ConsoleColor[] CreatePallet()
         {
             return
             [
-                ConsoleColor.DarkRed, ConsoleColor.DarkGreen, ConsoleColor.DarkBlue, ConsoleColor.DarkMagenta,
+                ConsoleColor.DarkRed, 
+                ConsoleColor.DarkGreen, 
+                ConsoleColor.DarkBlue, 
+                ConsoleColor.DarkMagenta,
             ];
         }
     }

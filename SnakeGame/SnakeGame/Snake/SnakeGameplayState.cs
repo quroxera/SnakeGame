@@ -83,7 +83,6 @@ namespace SnakeGame.Snake
         {
             foreach (Cell cell in _body)
             {
-
                 int restrictedX = Math.Clamp(cell.x, 0, fieldWidth - 1);
                 int restrictedY = Math.Clamp(cell.y, 0, fieldHeight - 1);
 

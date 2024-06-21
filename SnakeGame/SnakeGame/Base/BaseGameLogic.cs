@@ -4,11 +4,10 @@ namespace SnakeGame.Base
 {
     internal abstract class BaseGameLogic : IArrowListener
     {
-        private float time { get; set; }
-        public int screenWigth { get; set; }
-        public int screenHeight { get; set; }
-
-        public BaseGameState? currentState;
+        protected float time { get; private set; }
+        protected int screenWigth { get; private set; }
+        protected int screenHeight { get; private set; }
+        protected BaseGameState? currentState { get; private set; }
 
         public abstract void OnArrowDown();
         public abstract void OnArrowLeft();

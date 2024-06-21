@@ -9,7 +9,9 @@ namespace SnakeGame
         static void Main()
         {
             SnakeGameLogic gameLogic = new();
+
             ConsoleColor[] palette = gameLogic.CreatePallet();
+            DateTime lastFrameTime = DateTime.Now;
 
             ConsoleRenderer renderer0 = new(palette);
             ConsoleRenderer renderer1 = new(palette);
@@ -17,18 +19,19 @@ namespace SnakeGame
             ConsoleRenderer currRenderer = renderer1;
 
             ConsoleInput input = new ConsoleInput();
+
             gameLogic.InitializeInput(input);
-            DateTime lastFrameTime = DateTime.Now;
 
             while (true)
             {
                 DateTime frameStartTime = DateTime.Now;
                 float deltaTime = (float)(frameStartTime - lastFrameTime).TotalSeconds;
                 input.Update();
+
                 lastFrameTime = frameStartTime;
                 gameLogic.DrawNewState(deltaTime, currRenderer);
 
-                if (currRenderer != prevRenderer)
+                if (!currRenderer.Equals(prevRenderer))
                     currRenderer.Render();
 
                 ConsoleRenderer tmp = prevRenderer;
@@ -36,7 +39,7 @@ namespace SnakeGame
                 currRenderer = tmp;
                 currRenderer.Clear();
 
-                DateTime nextFrameTime = frameStartTime.AddSeconds(targetFrameTime);
+                DateTime nextFrameTime = frameStartTime + TimeSpan.FromSeconds(targetFrameTime);
                 DateTime endFrameTime = DateTime.Now;
 
                 if (nextFrameTime > endFrameTime)

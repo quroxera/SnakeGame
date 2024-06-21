@@ -12,11 +12,21 @@ namespace SnakeGame.Snake
         private SnakeDir currentDir = SnakeDir.right;
         private float timeToMove;
 
+        public int fieldWidth;
+        public int fieldHeight;
+
+        private const char snakeSymbol = '■';
         public override void Reset()
         {
             _body.Clear();
+
+            int middleX = fieldWidth / 2;
+            int middleY = fieldHeight / 2;
+
             currentDir = SnakeDir.right;
-            _body.Add(new Cell(0, 0));
+
+            _body.Add(new Cell(middleX, middleY));
+
             timeToMove = 0f;
         }
 
@@ -34,8 +44,6 @@ namespace SnakeGame.Snake
 
             _body.Remove(_body.Last());
             _body.Insert(0, nextCell);
-
-            Console.WriteLine($"{_body.First().x}, {_body.First().y}");
         }
 
         private struct Cell
@@ -60,15 +68,27 @@ namespace SnakeGame.Snake
             switch (endDir)
             {
                 case SnakeDir.up:
-                    return new Cell(startDir.x, startDir.y + 1);
-                case SnakeDir.down:
                     return new Cell(startDir.x, startDir.y - 1);
+                case SnakeDir.down:
+                    return new Cell(startDir.x, startDir.y + 1);
                 case SnakeDir.left:
                     return new Cell(startDir.x - 1, startDir.y);
                 case SnakeDir.right:
                     return new Cell(startDir.x + 1, startDir.y);
             }
             return startDir;
+        }
+
+        public override void Draw(ConsoleRenderer renderer)
+        {
+            foreach (Cell cell in _body)
+            {
+
+                int restrictedX = Math.Clamp(cell.x, 0, fieldWidth - 1);
+                int restrictedY = Math.Clamp(cell.y, 0, fieldHeight - 1);
+
+                renderer.SetPixel(restrictedX, restrictedY, snakeSymbol, 1);
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using SnakeGame.Base;
+using System.Reflection.Emit;
+using System.Text;
 
 namespace SnakeGame.Snake
 {
@@ -8,14 +10,21 @@ namespace SnakeGame.Snake
     }
     internal class SnakeGameplayState : BaseGameState
     {
+        private const string _snakeSymbol = "\ud83d\udc0d";
+        private const string _appleSymbol = "\ud83c\udf4e";
+
         private List<Cell> _body = new();
-        private SnakeDir currentDir = SnakeDir.right;
-        private float timeToMove;
+        private Cell _apple = new();
+        private SnakeDir _currentDir = SnakeDir.right;
+        private float _timeToMove;
+        private Random _random = new();
 
-        public int fieldWidth;
-        public int fieldHeight;
+        public int fieldWidth { get; set; }
+        public int fieldHeight { get; set; }
+        public int level { get; set; }
+        public bool gameOver { get; private set; }
+        public bool hasWon { get; private set; }
 
-        private const char snakeSymbol = '■';
         public override void Reset()
         {
             _body.Clear();
@@ -23,26 +32,42 @@ namespace SnakeGame.Snake
             int middleX = fieldWidth / 2;
             int middleY = fieldHeight / 2;
 
-            currentDir = SnakeDir.right;
+            gameOver = false;
+            hasWon = false;
+
+            _currentDir = SnakeDir.right;
 
             _body.Add(new Cell(middleX, middleY));
+            _apple = new(_random.Next(fieldWidth - 1), _random.Next(fieldHeight - 1));
 
-            timeToMove = 0f;
+            _timeToMove = 0f;
         }
 
         public override void Update(float deltaTime)
         {
-            timeToMove -= deltaTime;
+            _timeToMove -= deltaTime;
 
-            if (timeToMove > 0f)
+            if (_timeToMove > 0f || gameOver)
                 return;
 
-            timeToMove = 1f / 5f;
+            _timeToMove = 1f / (level + 4);
 
             Cell head = _body.First();
-            Cell nextCell = ShiftTo(head, currentDir);
+            Cell nextCell = ShiftTo(head, _currentDir);
+            if (nextCell.Equals(_apple))
+            {
+                _body.Insert(0, _apple);
+                hasWon = _body.Count >= level + 3;
+                GenerateApple();
+                return;
+            }
 
-            _body.Remove(_body.Last());
+            if (nextCell.x < 0 || nextCell.x >= fieldWidth || nextCell.y < 0 || nextCell.y >= fieldHeight)
+            {
+                gameOver = true;
+                return;
+            }
+            _body.RemoveAt(_body.Count - 1);
             _body.Insert(0, nextCell);
         }
 
@@ -60,7 +85,7 @@ namespace SnakeGame.Snake
 
         public void SetDirection(SnakeDir dir)
         {
-            currentDir = dir;
+            _currentDir = dir;
         }
 
         private Cell ShiftTo(Cell startDir, SnakeDir endDir)
@@ -81,13 +106,37 @@ namespace SnakeGame.Snake
 
         public override void Draw(ConsoleRenderer renderer)
         {
+            renderer.DrawString($"LEVEL: {level}", 0, 0, ConsoleColor.White);
+            renderer.DrawString($"SCORE: {_body.Count - 1}", 0, 1, ConsoleColor.White);
+            Console.OutputEncoding = Encoding.Unicode;
             foreach (Cell cell in _body)
             {
                 int restrictedX = Math.Clamp(cell.x, 0, fieldWidth - 1);
                 int restrictedY = Math.Clamp(cell.y, 0, fieldHeight - 1);
-
-                renderer.SetPixel(restrictedX, restrictedY, snakeSymbol, 1);
+                renderer.SetPixel(restrictedX, restrictedY, _snakeSymbol, 1);
             }
+            renderer.SetPixel(_apple.x, _apple.y, _appleSymbol, 0);
+
+        }
+
+        private void GenerateApple()
+        {
+            Cell cell = new Cell();
+            cell.x = _random.Next(fieldWidth - 1);
+            cell.y = _random.Next(fieldHeight - 1);
+            if (cell.Equals(_body.First()))
+            {
+                if (cell.y > fieldHeight / 2)
+                    cell.y--;
+                else
+                    cell.y++;
+            }
+            _apple = cell;
+        }
+
+        public override bool IsDone()
+        {
+            return gameOver || hasWon;
         }
     }
 }

@@ -7,14 +7,14 @@
 
         private const int MaxColors = 8;
         private readonly ConsoleColor[] _colors;
-        private readonly char[,] _pixels;
+        private readonly string[,] _pixels;
         private readonly byte[,] _pixelColors;
         private readonly int _maxWidth;
         private readonly int _maxHeight;
 
         public ConsoleColor bgColor { get; set; }
 
-        public char this[int w, int h]
+        public string this[int w, int h]
         {
             get { return _pixels[w, h]; }
             set { _pixels[w, h] = value; }
@@ -33,19 +33,18 @@
 
             _maxWidth = Console.LargestWindowWidth;
             _maxHeight = Console.LargestWindowHeight;
-            width = Console.WindowWidth;
+            width = Console.WindowWidth / 2;
             height = Console.WindowHeight;
 
-            _pixels = new char[_maxWidth, _maxHeight];
-            _pixelColors = new byte[_maxWidth, _maxHeight];
+            _pixels = new string[_maxWidth / 2, _maxHeight];
+            _pixelColors = new byte[_maxWidth / 2, _maxHeight];
         }
 
-        public void SetPixel(int w, int h, char val, byte colorIdx)
+        public void SetPixel(int w, int h, string val, byte colorIdx)
         {
             _pixels[w, h] = val;
             _pixelColors[w, h] = colorIdx;
         }
-
 
         public void Render()
         {
@@ -59,12 +58,12 @@
                     var color = _colors[colorIdx];
                     var symbol = _pixels[w, h];
 
-                    if (symbol == 0 || color == bgColor)
+                    if (symbol == null || color == bgColor)
                         continue;
 
                     Console.ForegroundColor = color;
 
-                    Console.SetCursorPosition(w, h);
+                    Console.SetCursorPosition(w * 2, h);
                     Console.Write(symbol);
                 }
 
@@ -80,18 +79,18 @@
 
             for (int i = 0; i < text.Length; i++)
             {
-                _pixels[atWidth + i, atHeight] = text[i];
+                _pixels[atWidth + i, atHeight] = text[i].ToString();
                 _pixelColors[atWidth + i, atHeight] = (byte)colorIdx;
             }
         }
 
         public void Clear()
         {
-            for (int w = 0; w < width; w++)
-                for (int h = 0; h < height; h++)
+            for (int w = 0; w < _pixels.GetLength(0); w++)
+                for (int h = 0; h < _pixels.GetLength(1); h++)
                 {
+                    _pixels[w, h] = null;
                     _pixelColors[w, h] = 0;
-                    _pixels[w, h] = (char)0;
                 }
         }
 
@@ -106,7 +105,6 @@
             {
                 return false;
             }
-
 
             for (int i = 0; i < _colors.Length; i++)
             {

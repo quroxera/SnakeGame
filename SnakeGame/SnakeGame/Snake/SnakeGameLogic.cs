@@ -1,55 +1,60 @@
-﻿using SnakeGame.Base;
+﻿using Base;
+using SnakeGame.Base;
 
 namespace SnakeGame.Snake
 {
     internal class SnakeGameLogic : BaseGameLogic
     {
-        private SnakeGameplayState gameplayState = new SnakeGameplayState();
+        private SnakeGameplayState _gameplayState = new SnakeGameplayState();
+        private bool _newGamePending = false;
+        private int _currentLevel = 0;
+        private ShowTextState _showTextState = new(2f);
 
         public override void OnArrowUp()
         {
-            if (currentState != gameplayState)
+            if (currentState != _gameplayState)
                 return;
 
-            gameplayState.SetDirection(SnakeDir.up);
+            _gameplayState.SetDirection(SnakeDir.up);
         }
 
         public override void OnArrowDown()
         {
-            if (currentState != gameplayState)
+            if (currentState != _gameplayState)
                 return;
 
-            gameplayState.SetDirection(SnakeDir.down);
+            _gameplayState.SetDirection(SnakeDir.down);
         }
 
         public override void OnArrowLeft()
         {
-            if (currentState != gameplayState)
+            if (currentState != _gameplayState)
                 return;
 
-            gameplayState.SetDirection(SnakeDir.left);
+            _gameplayState.SetDirection(SnakeDir.left);
         }
 
         public override void OnArrowRight()
         {
-            if (currentState != gameplayState)
+            if (currentState != _gameplayState)
                 return;
 
-            gameplayState.SetDirection(SnakeDir.right);
+            _gameplayState.SetDirection(SnakeDir.right);
         }
 
         public override void Update(float deltaTime)
         {
-            if (currentState != gameplayState)
-                GotoGameplay();
-        }
+            if (currentState != null && !currentState.IsDone())
+                return;
 
-        private void GotoGameplay()
-        {
-            gameplayState.fieldWidth = screenWigth;
-            gameplayState.fieldHeight = screenHeight;
-            ChangeState(gameplayState);
-            gameplayState.Reset();
+            if (currentState == null || currentState == _gameplayState && !_gameplayState.gameOver)
+                GoToNextLevel();
+            else if (currentState == _gameplayState && _gameplayState.gameOver)
+                GoToGameOver();
+            else if (currentState != _gameplayState && _newGamePending)
+                GoToNextLevel();
+            else if (currentState != _gameplayState && !_newGamePending)
+                GoToGameplay();
         }
 
         public override ConsoleColor[] CreatePallet()
@@ -59,8 +64,33 @@ namespace SnakeGame.Snake
                 ConsoleColor.DarkRed, 
                 ConsoleColor.DarkGreen, 
                 ConsoleColor.DarkBlue, 
-                ConsoleColor.DarkMagenta,
+                ConsoleColor.White,
             ];
+        }
+
+        private void GoToGameplay()
+        {
+            _gameplayState.level = _currentLevel;
+            _gameplayState.fieldWidth = screenWigth;
+            _gameplayState.fieldHeight = screenHeight;
+            ChangeState(_gameplayState);
+            _gameplayState.Reset();
+        }
+
+        private void GoToGameOver()
+        {
+            _currentLevel = 0;
+            _newGamePending = true;
+            _showTextState.text = "GAME OVER";
+            ChangeState(_showTextState);
+        }
+
+        private void GoToNextLevel()
+        {
+            _currentLevel++;
+            _newGamePending = false;
+            _showTextState.text = $"LEVEL {_currentLevel}";
+            ChangeState(_showTextState);
         }
     }
 }
